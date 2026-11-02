@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "ninos" ADD COLUMN     "actividades_completadas" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "desaciertos" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "estrellas" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "intentos_totales" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "monedas" INTEGER NOT NULL DEFAULT 50,
+ADD COLUMN     "puntos" INTEGER NOT NULL DEFAULT 0;

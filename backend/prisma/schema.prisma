@@ -1,0 +1,209 @@
+// ============================================
+// PRISMA SCHEMA - Plataforma Educativa Infantil
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USUARIOS (DOCENTES)
+// ============================================
+model Usuario {
+  id            String   @id @default(uuid())
+  nombre        String
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  rol           Rol      @default(DOCENTE)
+  creadoEn      DateTime @default(now()) @map("creado_en")
+
+  // Relaciones
+  ninos Nino[]
+
+  @@map("usuarios")
+}
+
+enum Rol {
+  DOCENTE
+  ADMIN
+}
+
+// ============================================
+// NIÑOS (ESTUDIANTES)
+// ============================================
+model Nino {
+  id              String    @id @default(uuid())
+  docenteId       String    @map("docente_id")
+  nombreCompleto  String    @map("nombre_completo")
+  codigoAlumno    String    @map("codigo_alumno") // "Alumno 1"
+  edad            Int
+  fechaNacimiento DateTime? @map("fecha_nacimiento")
+  activo          Boolean   @default(true)
+  nivelActual     Int       @default(1) @map("nivel_actual")
+  // Recompensas persistentes
+  monedas         Int       @default(50)
+  puntos          Int       @default(0)
+  estrellas       Int       @default(0)
+  // Contadores de actividad
+  actividadesCompletadas Int @default(0) @map("actividades_completadas")
+  desaciertos            Int @default(0)
+  intentosTotales        Int @default(0) @map("intentos_totales")
+  creadoEn        DateTime  @default(now()) @map("creado_en")
+  actualizadoEn   DateTime  @updatedAt @map("actualizado_en")
+
+  // Relaciones
+  docente   Usuario               @relation(fields: [docenteId], references: [id])
+  sesiones  SesionAprendizaje[]
+  intentos  IntentoActividad[]
+  progreso  ProgresoNino[]
+
+  @@unique([docenteId, codigoAlumno])
+  @@map("ninos")
+}
+
+// ============================================
+// ACTIVIDADES
+// ============================================
+model Actividad {
+  id                 String          @id @default(uuid())
+  titulo             String
+  descripcion        String
+  dimension          Dimension
+  tipoActividad      TipoActividad   @map("tipo_actividad")
+  nivelDificultad    Int             @map("nivel_dificultad")
+  configuracion      Json            @default("{}")
+  instrucciones      Json
+  esPregunta         Boolean         @default(false) @map("es_pregunta")
+  opciones           Json?
+  respuestaCorrecta  String?         @map("respuesta_correcta")
+  pista              String?
+  tiempoLimiteSeg    Int?            @map("tiempo_limite_seg")
+  imagenUrl          String?         @map("imagen_url")
+  audioUrl           String?         @map("audio_url")
+  activa             Boolean         @default(true)
+  creadoEn           DateTime        @default(now()) @map("creado_en")
+  actualizadoEn      DateTime        @updatedAt @map("actualizado_en")
+
+  // Relaciones
+  intentos IntentoActividad[]
+
+  @@map("actividades")
+}
+
+enum Dimension {
+  RECONOCIMIENTO
+  INTERACCION
+  AUTONOMIA
+}
+
+enum TipoActividad {
+  RECONOCER_COMPONENTE
+  HACER_CLIC
+  MOVER_CURSOR
+  ARRASTRAR_SOLTAR
+  SEGUIR_INSTRUCCION
+  SECUENCIA_PASO
+}
+
+// ============================================
+// SESIONES DE APRENDIZAJE
+// ============================================
+model SesionAprendizaje {
+  id            String       @id @default(uuid())
+  ninoId        String       @map("nino_id")
+  fechaInicio   DateTime     @default(now()) @map("fecha_inicio")
+  fechaFin      DateTime?    @map("fecha_fin")
+  estado        EstadoSesion @default(ACTIVA)
+  nivelInicial  Int          @map("nivel_inicial")
+  nivelFinal    Int?         @map("nivel_final")
+  creadoEn      DateTime     @default(now()) @map("creado_en")
+
+  // Relaciones
+  nino    Nino               @relation(fields: [ninoId], references: [id])
+  intentos IntentoActividad[]
+
+  @@map("sesiones_aprendizaje")
+}
+
+enum EstadoSesion {
+  ACTIVA
+  COMPLETADA
+  PAUSADA
+}
+
+// ============================================
+// INTENTOS DE ACTIVIDAD
+// ============================================
+model IntentoActividad {
+  id                String            @id @default(uuid())
+  sesionId          String            @map("sesion_id")
+  actividadId       String            @map("actividad_id")
+  ninoId            String            @map("nino_id")
+  resultado         ResultadoIntento
+  tiempoRespuestaMs Int               @map("tiempo_respuesta_ms")
+  pistasUtilizadas  Int               @default(0) @map("pistas_utilizadas")
+  intentosTotales   Int               @default(1) @map("intentos_totales")
+  nivelDificultad   Int               @map("nivel_dificultad")
+  creadoEn          DateTime          @default(now()) @map("creado_en")
+
+  // Relaciones
+  sesion    SesionAprendizaje @relation(fields: [sesionId], references: [id])
+  actividad Actividad         @relation(fields: [actividadId], references: [id])
+  nino      Nino              @relation(fields: [ninoId], references: [id])
+
+  @@map("intentos_actividad")
+}
+
+enum ResultadoIntento {
+  CORRECTO
+  INCORRECTO
+  ABANDONADO
+}
+
+// ============================================
+// PROGRESO DEL NIÑO
+// ============================================
+model ProgresoNino {
+  id                    String       @id @default(uuid())
+  ninoId                String       @map("nino_id")
+  dimension             Dimension
+  puntajeAcumulado      Float        @default(0) @map("puntaje_acumulado")
+  totalActividades      Int          @default(0) @map("total_actividades")
+  actividadesCorrectas  Int          @default(0) @map("actividades_correctas")
+  nivelDominio          NivelDominio @default(BAJO) @map("nivel_dominio")
+  ultimaActividad       DateTime     @default(now()) @map("ultima_actividad")
+  actualizadoEn         DateTime     @updatedAt @map("actualizado_en")
+
+  // Relaciones
+  nino Nino @relation(fields: [ninoId], references: [id])
+
+  @@unique([ninoId, dimension])
+  @@map("progreso_nino")
+}
+
+enum NivelDominio {
+  BAJO
+  REGULAR
+  ALTO
+}
+
+// ============================================
+// CONFIGURACIÓN IA
+// ============================================
+model ConfiguracionIA {
+  id         String   @id @default(uuid())
+  nombreRegla String  @map("nombre_regla")
+  condicion  Json
+  accion     Json
+  prioridad  Int      @default(1)
+  activa     Boolean  @default(true)
+  creadoEn   DateTime @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  @@map("configuracion_ia")
+}

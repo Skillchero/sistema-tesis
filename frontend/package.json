@@ -1,0 +1,31 @@
+{
+  "name": "frontend-tesis",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Plataforma web interactiva con IA para educación inicial - Tesis Piura 2026",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.2.13",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "framer-motion": "^14.6.0",
+    "howler": "^2.2.4",
+    "lucide-react": "^1.61.0",
+    "react-router-dom": "^7.18.4",
+    "recharts": "^3.10.1",
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.16"
+  }
+}

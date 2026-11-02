@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Build outputs
+/dist
+/.next
+/turbo
+
+# Environment variables
+.env
+*.env.local
+*.env.*.local
+
+# Database
+prisma/**
+/prisma/client/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
