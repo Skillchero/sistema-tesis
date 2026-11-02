@@ -74,14 +74,19 @@ async function main() {
     await prisma.$connect();
     console.log('✅ Conectado a PostgreSQL');
 
-    // Iniciar servidor
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-      console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-    });
+    // Solo escuchar en local (en Vercel no se necesita app.listen)
+    if (process.env.VERCEL !== '1') {
+      app.listen(PORT, () => {
+        console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+        console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+      });
+    }
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
-    process.exit(1);
+    // No salir en Vercel para que el error se vea en logs
+    if (process.env.VERCEL !== '1') {
+      process.exit(1);
+    }
   }
 }
 
@@ -97,4 +102,10 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-main();
+// Solo ejecutar main en local, en Vercel solo exportar la app
+if (process.env.VERCEL !== '1') {
+  main();
+}
+
+// Exportar la app para Vercel serverless
+export default app;
